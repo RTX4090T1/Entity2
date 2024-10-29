@@ -5,55 +5,60 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Identity.Client;
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Xml.Serialization;
 using static Entity2.EBJCONTEXT1;
-Productt studentinfo = new()
+List<Sport> sportres = new List<Sport>()
 {
-    NameSurname = "St1",
-    Faculty = "FMDT",
-    Course = 1,
-    Gender = "Male",
-    SalaryEnable = "True",
-    Raiting = 100,
+    new Sport{NameSurname = "S1",SportType = "Football",Result = 5,Medal = "Gold"},
+    new Sport{NameSurname = "S2",SportType = "Football",Result = 5,Medal = "None"},
+    new Sport{NameSurname = "S3",SportType = "Tenis",Result = 5,Medal = "Bronze"},
+    new Sport{NameSurname = "S4",SportType = "Tenis",Result = 5,Medal = "None"},
+    new Sport{NameSurname = "S5",SportType = "Tenis",Result = 5,Medal = "Gold"},
+    new Sport{NameSurname = "S6",SportType = "Football",Result = 5,Medal = "Silver"},
+    new Sport{NameSurname = "S7",SportType = "Biatlon",Result = 5,Medal = "Gold"},
 };
- void GetInfo()
+    
+void GetInfo()
 {
-using (var context = new EbjContext())
-{
-    context.Students.Add(studentinfo);
-    context.SaveChanges();
-    var stList = context.Students.ToList();
+    using (var context = new EbjContext())
+    {
+        context.SportResults.AddRange(sportres);
+        context.SaveChanges();
+        var stList = context.SportResults.ToList();
         ShowInfo(stList);
+        string path = "C://Users//default.LAPTOP-3FE6LNKR//source//repos//Entity2//Entity2//SportData.xml";
+        AddDataFRomDbToXmlFile(path, stList);
     }
 }
-    void GetinfoByInput(string input)
-    {
-    using(var fstList = new EbjContext())
-    {
-        var filtererdStudentList = fstList.Students.Where(st=>st.NameSurname == input).ToList();
-        ShowInfo(filtererdStudentList);
-    }
-    }
-    void GetExelentResult()
+void GetinfoByInput(string sportType)
 {
-    using (var fstList = new EbjContext())
+    using(var spotrList = new EbjContext())
     {
-        var filtererdStudentList = fstList.Students.Where(st => st.Raiting < 90).ToList();
-        ShowInfo(filtererdStudentList);
+        var filtererdByMedal = spotrList.SportResults.Where(s=>s.Medal != "None");
+        var filteredbySport = filtererdByMedal.Where(s => s.SportType == sportType).ToList();
+        ShowInfo(filteredbySport);
     }
 }
-void ShowInfo(List<Productt> students)
+void ShowInfo(List<Sport> sportman)
 {
-    foreach (var st in students)
+    foreach (var s in sportman)
     {
-        Console.WriteLine(st.NameSurname);
-        Console.WriteLine(st.Faculty);
-        Console.WriteLine(st.Gender);
-        Console.WriteLine(st.SalaryEnable);
-        Console.WriteLine(st.Course);
-        Console.WriteLine(st.Raiting);
+        Console.WriteLine(s.NameSurname);
+        Console.WriteLine(s.SportType);
+        Console.WriteLine(s.Medal);
+        Console.WriteLine(s.Result);
     }
 }
-Console.WriteLine("Enter 1 to get students from db, 2 to get students that is excelent, 3 to get student info by name:");
+void AddDataFRomDbToXmlFile(string path,List<Sport> sportData)
+{
+    XmlSerializer serToXmFile = new XmlSerializer(typeof(List<Sport>));
+    using (FileStream fs = new FileStream(path, FileMode.Append))
+    {
+        serToXmFile.Serialize(fs, sportData);
+    }
+}
+Console.WriteLine("Enter 1 to get SportInfo from db, 2 to get sportmans who earned medal in some sport:  :");
 int inp = Convert.ToInt32(Console.ReadLine());
 switch (inp)
 {
@@ -63,14 +68,11 @@ switch (inp)
         }
         case 2:
         {
-            Console.WriteLine("Enter student name:");
+            Console.WriteLine("Enter sport Type:");
             string input = Console.ReadLine();
             GetinfoByInput(input);
+            Console.WriteLine("Successfully saved tu xml File");
             break;
-        }
-        case 3:
-        {
-            GetExelentResult(); break;
         }
     default:
         {
